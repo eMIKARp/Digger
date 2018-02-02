@@ -34,10 +34,19 @@ public class Main extends JFrame
     ControlButton pButton = new ControlButton("Stop");
 
     DiggerClass diggerObject = new DiggerClass();
-    Image diggerImage;
-    Image diggerImageOpen;
-    Image diggerImageClose;
-  
+        Image diggerImage;
+        Image diggerImageOpen;
+        Image diggerImageClose;
+        int diggerXCoordinates;
+        int diggerYCoordinates;
+    PredatorClass predatorObject = new PredatorClass();
+        Image predatorImage;
+        Image predartorImageOpen;
+        Image predatorImageClose;
+        int predatorXCoordinates;
+        int predatorYCoordinates;
+        
+        
     static String diggerDirection;
     
     public Main()
@@ -96,15 +105,77 @@ public class Main extends JFrame
            
     class AnimationPanel extends JPanel
     {
-        Thread sThread;
+        Thread dThread;
+        Thread pThread;
         ThreadGroup gThreads = new ThreadGroup("Group of Threads");
 
         public void addDigger()
         {
-            sThread = new Thread(gThreads, new DiggerRunnable(diggerDirection));
-            sThread.start();
+            dThread = new Thread(gThreads, new DiggerRunnable(diggerDirection));
+            pThread = new Thread(gThreads, new PredatorRunnable());
+            dThread.start();
+            pThread.start();
         }
         
+        class PredatorRunnable implements Runnable
+        {
+
+            @Override
+            public void run() {
+                         
+                while(!Thread.currentThread().isInterrupted())
+                {
+                try
+                {
+                    if (predatorYCoordinates < diggerObject.y) 
+                    {
+                        predatorYCoordinates += 1;
+                        Thread.sleep(5);
+                    }
+                    else if (predatorYCoordinates > diggerObject.y) 
+                    {
+                        predatorYCoordinates -= 1;
+                        Thread.sleep(5);
+                    }
+                    else if (predatorYCoordinates == diggerObject.y) 
+                    {
+                        predatorYCoordinates += 0;
+                        Thread.sleep(5);
+                    }
+                    
+                    if (predatorXCoordinates < diggerObject.x) 
+                    {
+                        predatorXCoordinates += 1;
+                        Thread.sleep(5);
+                    }
+                    else if (predatorXCoordinates > diggerObject.x) 
+                    {
+                        predatorXCoordinates -= 1;
+                        Thread.sleep(5);
+                    }
+                    else if (predatorXCoordinates == diggerObject.x) 
+                    {
+                        predatorXCoordinates += 0;
+                        Thread.sleep(5);
+                    }
+                    
+                    Thread.sleep(3);
+                    predatorImage = predatorObject.predatorGoRight;
+                    aPanel.repaint();
+                    Thread.sleep(3);
+                    predatorImage = predatorObject.predatorGoLeft;
+                    Thread.sleep(3);
+                    aPanel.repaint();
+                }
+                catch (InterruptedException ex)
+                {
+                    System.out.println(ex.getMessage());
+                }
+                }
+                
+            }
+            
+        }
         class DiggerRunnable implements Runnable
         {
             String diggerDirection;
@@ -148,10 +219,10 @@ public class Main extends JFrame
                     {
                         diggerImage = diggerImageOpen;
                         aPanel.repaint();
-                        Thread.sleep(5);
+                        Thread.sleep(3);
                         diggerImage = diggerImageClose;
                         aPanel.repaint();
-                        Thread.sleep(1);
+                        Thread.sleep(3);
                     }
                     catch (InterruptedException ex)
                     {
@@ -160,7 +231,6 @@ public class Main extends JFrame
                 }
                     
                 }
-         
         }
         
         @Override
@@ -168,6 +238,8 @@ public class Main extends JFrame
         {
             super.paintComponent(g);
             g.drawImage (diggerImage, diggerObject.x, diggerObject.y, null);
+            g.drawImage(predatorImage, predatorXCoordinates, predatorYCoordinates, null);
+          
         }
         
         public void startGame()
@@ -194,13 +266,30 @@ public class Main extends JFrame
 
         int x = 100;
         int y = 100;
-        int dX = 1;
-        int dY = 1;
 
-        public void aObjectMove (JPanel playGround, int dX, int dY)
+        public void diggerMove (JPanel playGround, int dX, int dY)
         {
            x += dX;
            y += dY;
+           System.out.println(x + " " + y);
+        }
+    }
+    
+    class PredatorClass
+    {
+        public Image predatorGoRight = new ImageIcon("PredatorGoRight.png").getImage();
+        public Image predatorGoLeft = new ImageIcon("PredatorGoLeft.png").getImage();
+        public Image predatorGoUp = new ImageIcon("PredatorGoUp.png").getImage();
+        public Image predatorGoDown = new ImageIcon("PredatorGoDown.png").getImage();
+        
+        int x = 10;
+        int y = 10;
+    
+        public void predatorMove (JPanel playGround, int dX, int dY)
+        {
+           x += dX;
+           y += dY;
+           
         }
     }
     
@@ -213,10 +302,10 @@ public class Main extends JFrame
                 @Override
                 public void actionPerformed(ActionEvent e) 
                 {
-                    if (((JButton)e.getSource()).getText() == "Up") diggerObject.aObjectMove(aPanel, 0, -1);
-                    if (((JButton)e.getSource()).getText() == "Down") diggerObject.aObjectMove(aPanel, 0, 1);
-                    if (((JButton)e.getSource()).getText() == "Left") diggerObject.aObjectMove(aPanel, -1, 0);
-                    if (((JButton)e.getSource()).getText() == "Right") diggerObject.aObjectMove(aPanel, 1, 0);
+                    if (((JButton)e.getSource()).getText() == "Up") diggerObject.diggerMove(aPanel, 0, -1);
+                    if (((JButton)e.getSource()).getText() == "Down") diggerObject.diggerMove(aPanel, 0, 1);
+                    if (((JButton)e.getSource()).getText() == "Left") diggerObject.diggerMove(aPanel, -1, 0);
+                    if (((JButton)e.getSource()).getText() == "Right") diggerObject.diggerMove(aPanel, 1, 0);
                     if (((JButton)e.getSource()).getText() == "Start") aPanel.startGame();
                     if (((JButton)e.getSource()).getText() == "Stop") aPanel.endGame();
                     
@@ -230,22 +319,22 @@ public class Main extends JFrame
                     if (e.getKeyCode() == KeyEvent.VK_UP) 
                     {
                         diggerDirection = "Up"; 
-                        diggerObject.aObjectMove(aPanel, 0, -10);
+                        diggerObject.diggerMove(aPanel, 0, -10);
                 }
                     if (e.getKeyCode() == KeyEvent.VK_DOWN) 
                     {
                         diggerDirection = "Down"; 
-                        diggerObject.aObjectMove(aPanel, 0, 10);
+                        diggerObject.diggerMove(aPanel, 0, 10);
                     }
                     if (e.getKeyCode() == KeyEvent.VK_LEFT) 
                     {
                         diggerDirection = "Left"; 
-                        diggerObject.aObjectMove(aPanel, -10, 0);
+                        diggerObject.diggerMove(aPanel, -10, 0);
                     }
                     if (e.getKeyCode() == KeyEvent.VK_RIGHT) 
                     {
                         diggerDirection = "Right"; 
-                        diggerObject.aObjectMove(aPanel, 10, 0);
+                        diggerObject.diggerMove(aPanel, 10, 0);
                     }
                 }
             });
